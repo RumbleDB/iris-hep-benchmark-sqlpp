@@ -1,0 +1,84 @@
+DECLARE FUNCTION histogramBin(v, lo, hi, bin_width) {
+  FLOOR((
+    CASE
+      WHEN v < lo THEN lo - bin_width / 4
+      WHEN v > hi THEN hi + bin_width / 4
+      ELSE v
+    END - (lo mod bin_width)) / bin_width) * bin_width
+      + bin_width / 2 + (lo mod bin_width)
+};
+DECLARE FUNCTION histogram(values, lo, hi, num_bins) {
+    FROM values AS v
+    GROUP BY histogramBin(v, lo, hi, (hi - lo) / num_bins) AS x
+    SELECT x, count(*) AS y
+    ORDER BY x
+};
+DECLARE FUNCTION Square(x) { x*x };
+DECLARE FUNCTION DeltaPhi(p1, p2) {
+  CASE
+  WHEN (p1.phi - p2.phi) MOD (2*Pi()) < -Pi() THEN (p1.phi - p2.phi) MOD (2*Pi()) + 2 * Pi()
+  WHEN (p1.phi - p2.phi) MOD (2*Pi()) >  Pi() THEN (p1.phi - p2.phi) MOD (2*Pi()) - 2 * Pi()
+  ELSE (p1.phi - p2.phi) MOD (2*Pi())
+  END
+};
+Declare FUNCTION DeltaR(p1, p2) {
+  SQRT(Square(p1.eta - p2.eta) + Square(DeltaPhi(p1, p2)))
+};
+DECLARE FUNCTION computeInvariantMass(p1, p2) {
+  sqrt(2 * p1.pt * p2.pt * (cosh(p1.eta - p2.eta) - cos(p1.phi - p2.phi)))
+};
+DECLARE FUNCTION RhoZ2Eta(rho, z) {
+  ln(z/rho + sqrt(z/rho * z/rho + 1.0))
+};
+DECLARE FUNCTION PtEtaPhiM2PxPyPzE(pepm) {
+  {"x": pepm.pt * cos(pepm.phi),
+   "y": pepm.pt * sin(pepm.phi),
+   "z": pepm.pt * sinh(pepm.eta),
+   "t": sqrt((pepm.pt * cosh(pepm.eta))*(pepm.pt * cosh(pepm.eta)) + pepm.mass * pepm.mass)}
+};
+DECLARE FUNCTION PxPyPzE2PtEtaPhiM(xyzt) {
+  {"pt": sqrt(xyzt.x*xyzt.x + xyzt.y*xyzt.y),
+   "eta": RhoZ2Eta(sqrt(xyzt.x*xyzt.x + xyzt.y*xyzt.y), xyzt.z),
+   "phi": CASE WHEN (xyzt.x = 0.0 AND xyzt.y = 0.0) THEN 0 ELSE atan2(xyzt.y, xyzt.x) END,
+   "mass": sqrt(xyzt.t*xyzt.t - xyzt.x*xyzt.x - xyzt.y*xyzt.y - xyzt.z*xyzt.z)}
+};
+DECLARE FUNCTION AddPxPyPzE2(xyzt1, xyzt2) {
+  {"x": xyzt1.x + xyzt2.x,
+   "y": xyzt1.y + xyzt2.y,
+   "z": xyzt1.z + xyzt2.z,
+   "t": xyzt1.t + xyzt2.t}
+};
+DECLARE FUNCTION AddPxPyPzE3(xyzt1, xyzt2, xyzt3) {
+  {"x": xyzt1.x + xyzt2.x + xyzt3.x,
+   "y": xyzt1.y + xyzt2.y + xyzt3.y,
+   "z": xyzt1.z + xyzt2.z + xyzt3.z,
+   "t": xyzt1.t + xyzt2.t + xyzt3.t}
+};
+DECLARE FUNCTION AddPtEtaPhiM2(pepm1, pepm2) {
+  PxPyPzE2PtEtaPhiM(
+     AddPxPyPzE2(
+       PtEtaPhiM2PxPyPzE(pepm1),
+       PtEtaPhiM2PxPyPzE(pepm2)))
+};
+DECLARE FUNCTION AddPtEtaPhiM3(pepm1, pepm2, pepm3) {
+  PxPyPzE2PtEtaPhiM(
+     AddPxPyPzE3(
+       PtEtaPhiM2PxPyPzE(pepm1),
+       PtEtaPhiM2PxPyPzE(pepm2),
+       PtEtaPhiM2PxPyPzE(pepm3)))
+};
+histogram((
+    WITH EventsWithTriJet AS (
+        FROM Lineitem AS e
+        SELECT e.*, (
+            FROM (SELECT Jet.*, row_number() OVER () AS idx FROM e.Jet) AS j1,
+                 (SELECT Jet.*, row_number() OVER () AS idx FROM e.Jet) AS j2,
+                 (SELECT Jet.*, row_number() OVER () AS idx FROM e.Jet) AS j3
+            WHERE
+                j1.idx < j2.idx AND j2.idx < j3.idx
+            SELECT j1, j2, j3, AddPtEtaPhiM3(j1, j2, j3) AS j123
+            ORDER BY abs(j123.mass - 172.5) ASC)[0] AS triJet
+    )
+    FROM EventsWithTriJet
+    WHERE triJet IS NOT NULL
+    SELECT VALUE array_max([triJet.j1.btag, triJet.j2.btag, triJet.j3.btag])), 0, 1, 100)

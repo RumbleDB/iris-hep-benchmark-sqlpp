@@ -1,0 +1,29 @@
+DECLARE FUNCTION histogramBin(v, lo, hi, bin_width) {
+  FLOOR((
+    CASE
+      WHEN v < lo THEN lo - bin_width / 4
+      WHEN v > hi THEN hi + bin_width / 4
+      ELSE v
+    END - (lo mod bin_width)) / bin_width) * bin_width
+      + bin_width / 2 + (lo mod bin_width)
+};
+DECLARE FUNCTION histogram(values, lo, hi, num_bins) {
+    FROM values AS v
+    GROUP BY histogramBin(v, lo, hi, (hi - lo) / num_bins) AS x
+    SELECT x, count(*) AS y
+    ORDER BY x
+};
+DECLARE FUNCTION computeInvariantMass(p1, p2) {
+  sqrt(2 * p1.pt * p2.pt * (cosh(p1.eta - p2.eta) - cos(p1.phi - p2.phi)))
+};
+histogram((
+    FROM Lineitem AS e
+    WHERE EXISTS (
+        FROM (SELECT Muon.*, row_number() OVER () AS idx FROM e.Muon) AS m1,
+             (SELECT Muon.*, row_number() OVER () AS idx FROM e.Muon) AS m2
+        WHERE
+            m1.idx < m2.idx AND
+            m1.charge != m2.charge AND
+            computeInvariantMass(m1, m2) BETWEEN 60 AND 120
+        SELECT *)
+    SELECT VALUE MET.pt), 0, 2000, 100);

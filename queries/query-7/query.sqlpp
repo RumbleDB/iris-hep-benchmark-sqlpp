@@ -1,0 +1,45 @@
+DECLARE FUNCTION histogramBin(v, lo, hi, bin_width) {
+  FLOOR((
+    CASE
+      WHEN v < lo THEN lo - bin_width / 4
+      WHEN v > hi THEN hi + bin_width / 4
+      ELSE v
+    END - (lo mod bin_width)) / bin_width) * bin_width
+      + bin_width / 2 + (lo mod bin_width)
+};
+DECLARE FUNCTION histogram(values, lo, hi, num_bins) {
+    FROM values AS v
+    GROUP BY histogramBin(v, lo, hi, (hi - lo) / num_bins) AS x
+    SELECT x, count(*) AS y
+    ORDER BY x
+};
+DECLARE FUNCTION Square(x) { x*x };
+DECLARE FUNCTION DeltaPhi(p1, p2) {
+  CASE
+  WHEN (p1.phi - p2.phi) MOD (2*Pi()) < -Pi() THEN (p1.phi - p2.phi) MOD (2*Pi()) + 2 * Pi()
+  WHEN (p1.phi - p2.phi) MOD (2*Pi()) >  Pi() THEN (p1.phi - p2.phi) MOD (2*Pi()) - 2 * Pi()
+  ELSE (p1.phi - p2.phi) MOD (2*Pi())
+  END
+};
+Declare FUNCTION DeltaR(p1, p2) {
+  SQRT(Square(p1.eta - p2.eta) + Square(DeltaPhi(p1, p2)))
+};
+DECLARE FUNCTION computeInvariantMass(p1, p2) {
+  sqrt(2 * p1.pt * p2.pt * (cosh(p1.eta - p2.eta) - cos(p1.phi - p2.phi)))
+};
+histogram((
+    WITH GoodJets AS (
+        FROM Lineitem AS e
+        SELECT (
+            FROM e.Jet AS j
+            WHERE
+                j.pt > 30 AND
+                NOT EXISTS (SELECT * FROM e.Muon AS p
+                            WHERE p.pt > 10 AND DeltaR(p, j) < 0.4) AND
+                NOT EXISTS (SELECT * FROM e.Electron AS p
+                            WHERE p.pt > 10 AND DeltaR(p, j) < 0.4)
+            SELECT VALUE j) AS Jet
+    )
+    FROM GoodJets AS Jets
+    WHERE array_length(Jet) > 0
+    SELECT VALUE (SELECT VALUE sum(j.pt) FROM Jets.Jet AS j)[0]), 15, 200, 100)
