@@ -29,7 +29,7 @@ DECLARE FUNCTION computeInvariantMass(p1, p2) {
 };
 histogram((
     WITH GoodJets AS (
-        FROM Lineitem AS e
+        FROM %(input_table)s AS e
         SELECT (
             FROM e.Jet AS j
             WHERE

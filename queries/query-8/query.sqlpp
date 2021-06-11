@@ -69,7 +69,7 @@ DECLARE FUNCTION AddPtEtaPhiM3(pepm1, pepm2, pepm3) {
 };
 histogram((
     WITH EventsWithLeptons AS (
-        FROM Lineitem AS e
+        FROM %(input_table)s AS e
         SELECT e.*,
             (SELECT m.*, "m" AS `type` FROM e.Muon AS m UNION ALL
             SELECT p.*, "e" AS `type` FROM e.Electron AS p) AS Lepton

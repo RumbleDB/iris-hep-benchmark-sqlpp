@@ -69,7 +69,7 @@ DECLARE FUNCTION AddPtEtaPhiM3(pepm1, pepm2, pepm3) {
 };
 histogram((
     WITH EventsWithTriJet AS (
-        FROM Lineitem AS e
+        FROM %(input_table)s AS e
         SELECT e.*, (
             FROM (SELECT Jet.*, row_number() OVER () AS idx FROM e.Jet) AS j1,
                  (SELECT Jet.*, row_number() OVER () AS idx FROM e.Jet) AS j2,

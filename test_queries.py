@@ -55,6 +55,7 @@ def test_query(query_id, pytestconfig, asterixdb):
     # Read query
     with open(query_file, 'r') as f:
         query = f.read()
+    query = query % {'input_table': input_table}
 
     # Read function library
     with open(lib_file, 'r') as f:

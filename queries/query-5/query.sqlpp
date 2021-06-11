@@ -17,7 +17,7 @@ DECLARE FUNCTION computeInvariantMass(p1, p2) {
   sqrt(2 * p1.pt * p2.pt * (cosh(p1.eta - p2.eta) - cos(p1.phi - p2.phi)))
 };
 histogram((
-    FROM Lineitem AS e
+    FROM %(input_table)s AS e
     WHERE EXISTS (
         FROM (SELECT Muon.*, row_number() OVER () AS idx FROM e.Muon) AS m1,
              (SELECT Muon.*, row_number() OVER () AS idx FROM e.Muon) AS m2

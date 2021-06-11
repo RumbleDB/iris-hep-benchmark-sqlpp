@@ -13,4 +13,4 @@ DECLARE FUNCTION histogram(values, lo, hi, num_bins) {
     SELECT x, count(*) AS y
     ORDER BY x
 };
-histogram((SELECT VALUE MET.pt FROM Lineitem), 0, 2000, 100)
+histogram((SELECT VALUE MET.pt FROM %(input_table)s), 0, 2000, 100)
