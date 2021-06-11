@@ -1,16 +1,17 @@
 histogram((
     WITH GoodJets AS (
-        FROM %(input_table)s AS e
-        SELECT (
-            FROM e.Jet AS j
-            WHERE
-                j.pt > 30 AND
-                NOT EXISTS (SELECT * FROM e.Muon AS p
-                            WHERE p.pt > 10 AND DeltaR(p, j) < 0.4) AND
-                NOT EXISTS (SELECT * FROM e.Electron AS p
-                            WHERE p.pt > 10 AND DeltaR(p, j) < 0.4)
-            SELECT VALUE j) AS Jet
+      FROM %(input_table)s AS e
+      SELECT (
+        FROM e.Jet AS j
+        WHERE
+          j.pt > 30 AND
+          NOT EXISTS (SELECT * FROM e.Muon AS p
+                      WHERE p.pt > 10 AND DeltaR(p, j) < 0.4) AND
+          NOT EXISTS (SELECT * FROM e.Electron AS p
+                      WHERE p.pt > 10 AND DeltaR(p, j) < 0.4)
+        SELECT VALUE j) AS Jet
     )
     FROM GoodJets AS Jets
     WHERE array_length(Jet) > 0
-    SELECT VALUE (SELECT VALUE sum(j.pt) FROM Jets.Jet AS j)[0]), 15, 200, 100)
+    SELECT VALUE (SELECT VALUE sum(j.pt) FROM Jets.Jet AS j)[0]),
+  15, 200, 100)

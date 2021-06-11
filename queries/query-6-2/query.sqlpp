@@ -1,15 +1,15 @@
 histogram((
     WITH EventsWithTriJet AS (
-        FROM %(input_table)s AS e
-        SELECT e.*, (
-            FROM (SELECT Jet.*, row_number() OVER () AS idx FROM e.Jet) AS j1,
-                 (SELECT Jet.*, row_number() OVER () AS idx FROM e.Jet) AS j2,
-                 (SELECT Jet.*, row_number() OVER () AS idx FROM e.Jet) AS j3
-            WHERE
-                j1.idx < j2.idx AND j2.idx < j3.idx
-            SELECT j1, j2, j3, AddPtEtaPhiM3(j1, j2, j3) AS j123
-            ORDER BY abs(j123.mass - 172.5) ASC)[0] AS triJet
+      FROM %(input_table)s AS e
+      SELECT e.*, (
+        FROM (SELECT Jet.*, row_number() OVER () AS idx FROM e.Jet) AS j1,
+             (SELECT Jet.*, row_number() OVER () AS idx FROM e.Jet) AS j2,
+             (SELECT Jet.*, row_number() OVER () AS idx FROM e.Jet) AS j3
+        WHERE j1.idx < j2.idx AND j2.idx < j3.idx
+        SELECT j1, j2, j3, AddPtEtaPhiM3(j1, j2, j3) AS j123
+        ORDER BY abs(j123.mass - 172.5) ASC)[0] AS triJet
     )
     FROM EventsWithTriJet
     WHERE triJet IS NOT NULL
-    SELECT VALUE array_max([triJet.j1.btag, triJet.j2.btag, triJet.j3.btag])), 0, 1, 100)
+    SELECT VALUE array_max([triJet.j1.btag, triJet.j2.btag, triJet.j3.btag])),
+  0, 1, 100)
