@@ -1,16 +1,1 @@
-DECLARE FUNCTION histogramBin(v, lo, hi, bin_width) {
-  FLOOR((
-    CASE
-      WHEN v < lo THEN lo - bin_width / 4
-      WHEN v > hi THEN hi + bin_width / 4
-      ELSE v
-    END - (lo mod bin_width)) / bin_width) * bin_width
-      + bin_width / 2 + (lo mod bin_width)
-};
-DECLARE FUNCTION histogram(values, lo, hi, num_bins) {
-    FROM values AS v
-    GROUP BY histogramBin(v, lo, hi, (hi - lo) / num_bins) AS x
-    SELECT x, count(*) AS y
-    ORDER BY x
-};
 histogram((SELECT VALUE MET.pt FROM %(input_table)s), 0, 2000, 100)
