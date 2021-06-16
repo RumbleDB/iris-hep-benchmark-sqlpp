@@ -1,5 +1,0 @@
-CREATE TYPE t1 AS OPEN {};
-create external dataset Lineitem(t1)
-using localfs
-(("path"="127.0.0.1:///data/sample.json"),
-("format"="json"));

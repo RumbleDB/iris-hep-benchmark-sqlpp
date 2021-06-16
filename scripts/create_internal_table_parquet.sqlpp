@@ -1,0 +1,6 @@
+CREATE DATASET %(dataset_name)s(%(type_name)s) PRIMARY KEY event;
+LOAD DATASET %(dataset_name)s
+USING hdfs
+  (("hdfs"="%(external_server)s"),
+   ("path"="%(external_path)s"),
+   ("input-format"="parquet-input-format"))
