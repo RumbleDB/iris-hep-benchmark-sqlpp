@@ -50,7 +50,7 @@ Instead of querying files on HDFS, you can also load the data into the internal 
 
 #### Parquet vs JSON Files
 
-You can also query (or load) data in the JSON format. To do so, use `--file-format json` (and adapt the name of the dataset and the files).
+You can also query (or load) data in the JSON format (converted with [`scripts/parquet2json.py`](/scripts/parquet2json.py)). To do so, use `--file-format json` (and adapt the name of the dataset and the files).
 
 #### Typed vs Untyped Dataset
 
