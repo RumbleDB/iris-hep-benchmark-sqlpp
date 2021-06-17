@@ -53,28 +53,12 @@ def test_query(query_id, pytestconfig, asterixdb):
     result = asterixdb.run(query)
     end_timestamp = time.time()
 
-    # Print some statistics
-    metrics = result.get('metrics', {})
-    logging.debug(result)
-    logging.info('Request ID: %s', result.get('requestID', '(unknown)'))
-    logging.info('Status: %s', result.get('status', '(unknown)'))
-    logging.info('Elapsed time: %s', metrics.get('elapsedTime', '(unknown)'))
-    logging.info('Execution time: %s', metrics.get('executionTime', '(unknown)'))
-    logging.info('Result count: %s', metrics.get('resultCount', '(unknown)'))
-    logging.info('Result size %s', metrics.get('resultSize', '(unknown)'))
-    logging.info('Processed objects: %s', metrics.get('processedObjects', '(unknown)'))
-
     running_time = end_timestamp - start_timestamp
     logging.info('Running time: {:.2f}s'.format(running_time))
 
-    for error in result.get('errors', []):
-        logging.error('Error (%i): %s',
-                      error.get('code', -1),
-                      error.get('msg', '(none)'))
-
     # Convert result
     df = pd.DataFrame \
-        .from_dict(result['results']) \
+        .from_dict(result) \
         .astype({'x': np.float64, 'y': np.int32})
     logging.info(df)
 
