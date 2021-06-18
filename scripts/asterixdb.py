@@ -14,6 +14,18 @@ class AsterixDB:
             server_uri=self.server_uri)
         logging.info('Running query against %s', query_uri)
 
+        # Use given dataverse
+        if self.dataverse:
+            # Create if not exists
+            dataverse_query = 'CREATE DATAVERSE {} IF NOT EXISTS' \
+                .format(self.dataverse)
+            response = requests.post(query_uri,
+                                     {'statement': dataverse_query})
+
+            # Modify query
+            logging.info('Using dataverse %s', self.dataverse)
+            query = 'USE {};'.format(self.dataverse) + query
+
         # Send request
         logging.debug('Sending query:\n%s', query)
         response = requests.post(query_uri, {'statement': query})
