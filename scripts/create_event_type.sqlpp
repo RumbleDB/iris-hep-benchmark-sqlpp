@@ -101,6 +101,7 @@ CREATE TYPE tauType IF NOT EXISTS AS {
 };
 
 CREATE TYPE eventType IF NOT EXISTS AS {
+    _uuid:              uuid,
     `run`:              int,
     luminosityBlock:    bigint,
     event:              bigint,
