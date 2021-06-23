@@ -100,7 +100,7 @@ CREATE TYPE tauType IF NOT EXISTS AS {
     idAntiMuTight:      boolean
 };
 
-CREATE TYPE eventType IF NOT EXISTS AS {
+CREATE TYPE eventTypeIndexed IF NOT EXISTS AS {
     _uuid:              uuid,
     `run`:              int,
     luminosityBlock:    bigint,

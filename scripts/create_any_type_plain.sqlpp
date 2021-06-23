@@ -1,3 +1,2 @@
 CREATE TYPE anyType IF NOT EXISTS AS OPEN {
-    _uuid: uuid
 };
