@@ -92,4 +92,4 @@ def test_query(query_id, pytestconfig, asterixdb):
 
 
 if __name__ == '__main__':
-    pytest.main(sys.argv)
+    sys.exit(pytest.main(sys.argv))
