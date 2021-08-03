@@ -1,10 +1,10 @@
 histogram((
     FROM %(input_table)s AS e
     WHERE EXISTS (
-      FROM (SELECT Muon.*, row_number() OVER () AS idx FROM e.Muon) AS m1,
-           (SELECT Muon.*, row_number() OVER () AS idx FROM e.Muon) AS m2
+      FROM e.Muon AS m1 AT idx1,
+           e.Muon AS m2 AT idx2
       WHERE
-        m1.idx < m2.idx AND
+        idx1 < idx2 AND
         m1.charge != m2.charge AND
         computeInvariantMass(m1, m2) BETWEEN 60 AND 120
       SELECT *)

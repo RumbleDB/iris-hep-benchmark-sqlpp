@@ -9,17 +9,16 @@ histogram((
     BestTriLepton AS (
       FROM EventsWithLeptons AS e
       SELECT e.*, (
-        FROM (SELECT Lepton.*, row_number() OVER () AS idx FROM e.Lepton) AS l1,
-             (SELECT Lepton.*, row_number() OVER () AS idx FROM e.Lepton) AS l2
+        FROM e.Lepton AS l1 AT idx1,
+             e.Lepton AS l2 AT idx2
         WHERE
-          l1.idx < l2.idx AND
+          idx1 < idx2 AND
           l1.charge != l2.charge AND
           l1.`type` = l2.`type`
         SELECT
           l1, l2, (
-            FROM
-              (SELECT Lepton.*, row_number() OVER () AS idx FROM e.Lepton) AS l3
-            WHERE l3.idx != l1.idx AND l3.idx != l2.idx
+            FROM e.Lepton AS l3 AT idx3
+            WHERE idx3 != idx1 AND idx3 != idx2
             SELECT VALUE l3
             ORDER BY l3.pt DESC)[0] AS l3
         ORDER BY ABS(91.2 - AddPtEtaPhiM2(l1, l2).mass))[0] AS triLepton
