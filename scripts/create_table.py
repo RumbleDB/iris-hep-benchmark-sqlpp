@@ -62,10 +62,13 @@ if args.bucket_name:
             'Need --bucket-region when --bucket-name is set.')
     storage_system = 's3'
 else:
-    if not args.hdfs_server:
-        argparse.ArgumentError(
-            'One of --hdfs-server and --bucket-name is needed.')
     storage_system = 'hdfs'
+    if args.external_path.startswith('file://'):
+        storage_system = 'local'
+    elif not args.hdfs_server:
+        argparse.ArgumentError(
+            'One of --hdfs-server and --bucket-name is needed, '
+            'or --external-path must be "file://...".')
 
 # Assemble paths to SQL files
 base_dir = dirname(__file__)
