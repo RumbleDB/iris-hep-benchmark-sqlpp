@@ -61,6 +61,16 @@ if args.bucket_name:
         argparse.ArgumentError(
             'Need --bucket-region when --bucket-name is set.')
     storage_system = 's3'
+
+    # Update the bucket paths for a correct request
+    base_bucket_index = args.bucket_name.find("/")
+    bucket_name = args.bucket_name[:base_bucket_index] if base_bucket_index != -1 \
+        else args.bucket_name
+    external_path = ("" if base_bucket_index == -1 else
+        (args.bucket_name[base_bucket_index + 1:] + "/")) + args.external_path
+
+    conf['bucket_name'] = bucket_name
+    conf['external_path'] = external_path
 else:
     storage_system = 'hdfs'
     if args.external_path.startswith('file://'):
